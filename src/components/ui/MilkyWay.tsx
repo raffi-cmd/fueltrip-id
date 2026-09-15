@@ -2,9 +2,6 @@ import React, { useRef, useMemo, useEffect, useLayoutEffect, useState } from 're
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Center } from '@react-three/drei';
 import * as THREE from 'three';
-import { EffectComposer, Vignette } from '@react-three/postprocessing';
-import { Effect } from 'postprocessing';
-import { Uniform, Vector2, type WebGLRenderer } from 'three';
 
 const { degToRad } = THREE.MathUtils;
 
@@ -117,173 +114,6 @@ function createVisibilityGate({
   };
 }
 
-const classicBlurFragmentShader = /* glsl */ `
-uniform float uBlurStrength;
-uniform float uBlurStart;
-uniform vec2 uResolution;
-
-void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
-  vec2 center = uv - 0.5;
-  float dist = length(center);
-  float blurAmount = smoothstep(uBlurStart, 0.75, dist) * uBlurStrength;
-
-  if (blurAmount < 0.001) {
-    outputColor = inputColor;
-    return;
-  }
-
-  vec2 texelSize = vec2(1.0 / uResolution.x, 1.0 / uResolution.y);
-  const int TAPS = 12;
-  vec2 offsets[12];
-  offsets[0] = vec2(-0.326, -0.406);
-  offsets[1] = vec2(-0.840, -0.074);
-  offsets[2] = vec2(-0.696, 0.457);
-  offsets[3] = vec2(-0.203, 0.621);
-  offsets[4] = vec2( 0.962, -0.195);
-  offsets[5] = vec2( 0.473, -0.480);
-  offsets[6] = vec2( 0.519, 0.767);
-  offsets[7] = vec2( 0.185, -0.893);
-  offsets[8] = vec2( 0.507, 0.064);
-  offsets[9] = vec2( 0.896, 0.412);
-  offsets[10] = vec2(-0.322, -0.933);
-  offsets[11] = vec2(-0.792, -0.598);
-
-  float radius = blurAmount * 12.0;
-  vec4 blurred = inputColor;
-  float totalWeight = 1.0;
-
-  for (int i = 0; i < TAPS; i++) {
-    vec2 offset = offsets[i] * radius * texelSize;
-    vec4 s = texture2D(inputBuffer, uv + offset);
-    blurred += s;
-    totalWeight += 1.0;
-  }
-
-  blurred /= totalWeight;
-  outputColor = blurred;
-}
-`;
-
-const frostedBlurFragmentShader = /* glsl */ `
-uniform float uBlurStrength;
-uniform float uBlurStart;
-uniform vec2 uResolution;
-
-void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
-  vec2 center = uv - 0.5;
-  float dist = length(center);
-  float blurAmount = smoothstep(uBlurStart, 0.75, dist) * uBlurStrength;
-
-  if (blurAmount < 0.001) {
-    outputColor = inputColor;
-    return;
-  }
-
-  vec2 texelSize = vec2(1.0 / uResolution.x, 1.0 / uResolution.y);
-  const int TAPS = 12;
-  vec2 offsets[12];
-  offsets[0] = vec2(-0.326, -0.406);
-  offsets[1] = vec2(-0.840, -0.074);
-  offsets[2] = vec2(-0.696, 0.457);
-  offsets[3] = vec2(-0.203, 0.621);
-  offsets[4] = vec2( 0.962, -0.195);
-  offsets[5] = vec2( 0.473, -0.480);
-  offsets[6] = vec2( 0.519, 0.767);
-  offsets[7] = vec2( 0.185, -0.893);
-  offsets[8] = vec2( 0.507, 0.064);
-  offsets[9] = vec2( 0.896, 0.412);
-  offsets[10] = vec2(-0.322, -0.933);
-  offsets[11] = vec2(-0.792, -0.598);
-
-  float radius = blurAmount * 12.0;
-  vec4 blurred = inputColor;
-  float totalWeight = 1.0;
-
-  for (int i = 0; i < TAPS; i++) {
-    vec2 offset = offsets[i] * radius * texelSize;
-    vec4 s = texture2D(inputBuffer, uv + offset);
-    blurred += s;
-    totalWeight += 1.0;
-  }
-
-  blurred /= totalWeight;
-  vec3 white = vec3(1.0, 1.0, 1.0);
-  float veilAlpha = 0.4 * blurAmount;
-  vec3 outRgb = mix(blurred.rgb, white, veilAlpha);
-  float outAlpha = blurred.a;
-  outputColor = vec4(outRgb, outAlpha);
-}
-`;
-
-interface EdgeBlurEffectImplOptions {
-  blurStrength?: number;
-  blurStart?: number;
-  resolution?: [number, number];
-  frag?: string;
-}
-
-class EdgeBlurEffectImpl extends Effect {
-  constructor({
-    blurStrength = 1.0,
-    blurStart = 0.25,
-    resolution = [1280, 720],
-    frag = frostedBlurFragmentShader,
-  }: EdgeBlurEffectImplOptions = {}) {
-    const uniforms = new Map<string, Uniform<any>>([
-      ['uBlurStrength', new Uniform(blurStrength)],
-      ['uBlurStart', new Uniform(blurStart)],
-      ['uResolution', new Uniform(new Vector2(resolution[0], resolution[1]))],
-    ]);
-    super('EdgeBlurEffect', frag, { uniforms });
-  }
-
-  setResolution(width: number, height: number) {
-    const uRes = this.uniforms.get('uResolution');
-    if (uRes) uRes.value.set(width, height);
-  }
-
-  update(renderer: WebGLRenderer) {
-    if (renderer && renderer.getSize) {
-      const size = renderer.getSize(new Vector2());
-      this.setResolution(size.x, size.y);
-    }
-  }
-}
-
-interface EdgeBlurEffectProps {
-  blurType?: 'classic' | 'frosted';
-  blurStrength?: number;
-  blurStart?: number;
-}
-
-function EdgeBlurEffect({
-  blurType = 'classic',
-  blurStrength = 1.0,
-  blurStart = 0.25,
-}: EdgeBlurEffectProps) {
-  const frag = blurType === 'classic' ? classicBlurFragmentShader : frostedBlurFragmentShader;
-
-  const effect = useMemo(() => {
-    let width = 1280;
-    let height = 720;
-    if (typeof window !== 'undefined') {
-      width = window.innerWidth;
-      height = window.innerHeight;
-    }
-    return new EdgeBlurEffectImpl({ blurStrength, blurStart, resolution: [width, height], frag });
-  }, [blurStrength, blurStart, frag]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const update = () => effect.setResolution(window.innerWidth, window.innerHeight);
-    window.addEventListener('resize', update);
-    update();
-    return () => window.removeEventListener('resize', update);
-  }, [effect]);
-
-  return <primitive object={effect} dispose={null} />;
-}
-
 const DEFAULT_PARTICLE_SIZE = 0.75;
 const DEFAULT_CORE_COLOR = '#f0fdf4';
 const DEFAULT_ACCENT_COLOR = '#10b981';
@@ -336,7 +166,7 @@ function resolveMilkyWayProps({
 }
 
 const CFG = {
-  texSize: 320,
+  texSize: 110, // ~12,100 high-performance particles
   maxRadius: 3.5,
   holeRadius: 1.2,
   holeEdgeBand: 1.5,
@@ -360,7 +190,7 @@ const CFG = {
 };
 
 const SMOKE_CFG = {
-  texSize: 45,
+  texSize: 20, // ~400 lightweight smoke quads
   maxRadius: 3.5,
   holeRadius: 1.2,
   holeEdgeBand: 1.5,
@@ -1332,7 +1162,7 @@ export function MilkyWay({
     const updateViewport = () => {
       queueMicrotask(() => {
         setViewport({
-          dpr: Math.max(1, Math.min(2, window.devicePixelRatio || 1)),
+          dpr: Math.min(1.2, typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1),
         });
       });
     };
@@ -1358,9 +1188,9 @@ export function MilkyWay({
         <Canvas
           aria-hidden="true"
           dpr={viewport.dpr}
-          gl={{ antialias: false, powerPreference: 'high-performance' }}
+          gl={{ antialias: false, powerPreference: 'high-performance', depth: false, stencil: false }}
           camera={{ position: [-1, -1.8, 4], fov: 45, near: 0.01, far: 200 }}
-          style={{ opacity: isSceneReady ? 1 : 0, transition: 'opacity 1s ease' }}
+          style={{ opacity: isSceneReady ? 1 : 0, transition: 'opacity 0.8s ease' }}
           frameloop={frameloop}
           onCreated={({ gl }) => {
             gl.setClearColor(resolvedProps.backgroundColor, 1);
@@ -1393,13 +1223,16 @@ export function MilkyWay({
               )}
             </GalaxyMouseGroup>
           </Center>
-          <EffectComposer>
-            <EdgeBlurEffect blurStrength={1.2} blurStart={0.2} />
-            <EdgeBlurEffect blurType="classic" blurStrength={0.3} blurStart={0.1} />
-            <Vignette opacity={0.5} offset={0.8} darkness={0.7} />
-          </EffectComposer>
         </Canvas>
       ) : null}
+
+      {/* Lightweight GPU-accelerated CSS Vignette */}
+      <div 
+        className="absolute inset-0 pointer-events-none" 
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 35%, rgba(3, 7, 18, 0.5) 70%, rgba(3, 7, 18, 0.95) 100%)'
+        }} 
+      />
     </div>
   );
 }

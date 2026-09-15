@@ -21,7 +21,7 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
   }
 
   return (
-    <section className="bg-slate-900/70 backdrop-blur-2xl rounded-3xl p-5 sm:p-7 shadow-2xl shadow-emerald-950/20 border border-white/10 space-y-4">
+    <section className="bg-slate-900/85 backdrop-blur-md rounded-3xl p-5 sm:p-7 shadow-2xl shadow-emerald-950/20 border border-white/10 space-y-4">
       <div className="flex items-center justify-between pb-3 border-b border-white/10">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center">

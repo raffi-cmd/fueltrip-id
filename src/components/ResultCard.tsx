@@ -48,9 +48,9 @@ export const ResultCard: React.FC<ResultCardProps> = ({
 
   if (!output || validationError) {
     return (
-      <div className="bg-slate-900/80 backdrop-blur-2xl text-white rounded-3xl p-6 sm:p-8 shadow-2xl shadow-emerald-950/30 flex flex-col items-center justify-center text-center min-h-[380px] border border-white/10 relative overflow-hidden">
+      <div className="bg-slate-900/85 backdrop-blur-md text-white rounded-3xl p-6 sm:p-8 shadow-2xl shadow-emerald-950/30 flex flex-col items-center justify-center text-center min-h-[380px] border border-white/10 relative overflow-hidden">
         <div className="absolute -right-16 -top-16 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="w-16 h-16 rounded-2xl bg-slate-800/80 backdrop-blur-md border border-white/10 flex items-center justify-center text-emerald-400 mb-4 shadow-inner">
+        <div className="w-16 h-16 rounded-2xl bg-slate-800/80 backdrop-blur-sm border border-white/10 flex items-center justify-center text-emerald-400 mb-4 shadow-inner">
           <Fuel className="w-8 h-8 animate-pulse" />
         </div>
         <h3 className="text-xl font-bold mb-2">Menunggu Input Perjalanan</h3>
@@ -62,7 +62,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
   }
 
   return (
-    <div className="bg-slate-900/80 backdrop-blur-2xl text-white rounded-3xl p-6 sm:p-8 shadow-2xl shadow-emerald-950/40 border border-white/10 relative overflow-hidden flex flex-col justify-between">
+    <div className="bg-slate-900/85 backdrop-blur-md text-white rounded-3xl p-6 sm:p-8 shadow-2xl shadow-emerald-950/40 border border-white/10 relative overflow-hidden flex flex-col justify-between">
       {/* Background Decorative Glow */}
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />

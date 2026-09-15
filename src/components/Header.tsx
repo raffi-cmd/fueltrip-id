@@ -15,7 +15,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenPopularRoutes,
 }) => {
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-950/60 border-b border-white/10 transition-colors">
+    <header className="sticky top-0 z-40 backdrop-blur-md bg-slate-950/85 border-b border-white/10 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <div className="flex items-center space-x-3">

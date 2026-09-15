@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { FuelTripInput, FuelPreset } from '../types/fuel';
 import { FuelPresetChips } from './FuelPresetChips';
 import { 
@@ -93,7 +93,7 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
   };
 
   return (
-    <div className="backdrop-blur-2xl bg-slate-900/70 text-slate-100 rounded-3xl p-5 sm:p-7 shadow-2xl border border-white/10 hover:border-emerald-500/30 transition-all space-y-6">
+    <div className="backdrop-blur-md bg-slate-900/85 text-slate-100 rounded-3xl p-5 sm:p-7 shadow-2xl border border-white/10 hover:border-emerald-500/30 transition-all space-y-6">
       
       {/* Optional Trip Name */}
       <div>
